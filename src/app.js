@@ -12,21 +12,26 @@ const allowedOrigins = [
   'https://vasa-eight.vercel.app'
 ];
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin) return callback(null, true); // Allow server-to-server or tools
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error(`CORS error: origin ${origin} not allowed`));
-    },
-    credentials: true, // Allow cookies and Authorization headers
-  })
-);
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error(`CORS error: origin ${origin} not allowed`));
+  },
+  credentials: true,
+};
 
-// Handle preflight requests explicitly
-app.options('*', cors());
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // Important: use same config
+
+
+app.use((req, res, next) => {
+  console.log('Incoming Origin:', req.headers.origin);
+  next();
+});
+
 
 app.use(json());
 app.use(morgan('dev'));
